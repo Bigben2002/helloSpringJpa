@@ -89,6 +89,54 @@ public class ProductRepository {
                 .getResultList();
         return result.isEmpty() ? Optional.empty() : Optional.of(result.get(0));
     }
+    // 1step -> 상품 검색용 JPQL 조회 메서드 추가하기
+
+    /**
+     * 상품명 키워드로 상품 목록 조회 (부분 일치 검색)
+     *
+     * JPQL LIKE 검색:
+     *   - LOWER + LIKE + CONCAT('%', :keyword, '%') 조합으로
+     *     대소문자를 무시한 부분 문자열 검색을 수행합니다.
+     *   - 예) keyword = "맥북" → "MacBook", "맥북 프로" 모두 조회 가능
+     *
+     * LEFT JOIN FETCH p.category:
+     *   - 상품 목록 화면에서 카테고리명을 함께 표시하므로
+     *     category 연관 엔티티를 즉시 로딩하여 N+1 문제를 완화합니다.
+     *
+     * ORDER BY p.id ASC:
+     *   - 화면 출력 순서를 일관되게 유지합니다.
+     */
+    public List<Product> findByNameContaining(String keyword) {
+        return entityManager.createQuery(
+                        "SELECT p FROM Product p " +
+                                "LEFT JOIN FETCH p.category " +
+                                "WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+                                "ORDER BY p.id ASC", Product.class)
+                .setParameter("keyword", keyword)
+                .getResultList();
+    }
+
+    /**
+     * 카테고리 ID로 상품 목록 조회
+     *
+     * WHERE p.category.id = :categoryId:
+     *   - Product와 Category의 연관관계(FK)를 기준으로 필터링합니다.
+     *
+     * LEFT JOIN FETCH p.category:
+     *   - 목록 화면에서 category.name 접근 시 추가 쿼리 발생을 줄이기 위해 사용합니다.
+     *
+     * 사용 목적:
+     *   - 상품 목록에서 특정 카테고리만 보고 싶을 때 필터 기능으로 활용합니다.
+     */
+    public List<Product> findByCategoryId(Long categoryId) {
+        return entityManager.createQuery(
+                        "SELECT p FROM Product p " +
+                                "LEFT JOIN FETCH p.category " +
+                                "WHERE p.category.id = :categoryId " +
+                                "ORDER BY p.id ASC", Product.class)
+                .setParameter("categoryId", categoryId)
+                .getResultList();
+    }
 
     /**
      * 상품 저장 (신규 생성)
