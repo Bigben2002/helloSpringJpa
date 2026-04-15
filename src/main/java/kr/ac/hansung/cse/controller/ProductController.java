@@ -67,22 +67,26 @@ public class ProductController {
     public String listProducts(@RequestParam(required = false) String keyword,
                                @RequestParam(required = false) Long categoryId,
                                Model model) {
+        String normalizedKeyWord = (keyword == null) ? "" : keyword.trim();
+        boolean hasKeyword = !normalizedKeyWord.isBlank();
+        boolean hasCategory = (categoryId != null);
 
         List<Product> products;
-
-        if (keyword != null && !keyword.isBlank()) {
-            products = productService.searchByName(keyword.trim());
-        } else if (categoryId != null) {
+         if (hasKeyword) {
+            products = productService.searchByName(normalizedKeyWord);
+        } else if (hasCategory) {
             products = productService.searchByCategory(categoryId);
         } else {
             products = productService.getAllProducts();
         }
+
 
         // 카테고리 드롭다운 목록 + 현재 검색 조건 유지
         model.addAttribute("products", products);
         model.addAttribute("categories", categoryService.getAllCategories()); // 드롭다운 목록
         model.addAttribute("keyword", keyword);       // 검색어 유지
         model.addAttribute("categoryId", categoryId); // 선택값 유지
+        model.addAttribute("searched", hasKeyword || hasCategory); // 검색 여부 플래그
 
         return "productList";
     }
