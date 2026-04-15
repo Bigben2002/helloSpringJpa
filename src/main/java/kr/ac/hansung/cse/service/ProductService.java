@@ -87,6 +87,27 @@ public class ProductService {
         return productRepository.findById(id);
     }
 
+    // 2step -> 상품 검색과 관련하여 서비스 로직을 추가하기
+    /**
+     * 상품명 키워드 검색
+     *
+     * readOnly 트랜잭션(클래스 기본값)을 그대로 사용합니다.
+     * 실제 검색 쿼리는 Repository 계층에 위임합니다.
+     */
+    public List<Product> searchByName(String keyword) {
+        return productRepository.findByNameContaining(keyword);
+    }
+
+    /**
+     * 카테고리 ID 기준 검색
+     *
+     * 상품 목록 화면에서 특정 카테고리를 선택했을 때 사용합니다.
+     * 조회 전용 작업이므로 readOnly 트랜잭션으로 충분합니다.
+     */
+    public List<Product> searchByCategory(Long categoryId) {
+        return productRepository.findByCategoryId(categoryId);
+    }
+
     /**
      * 새 상품 등록
      *
