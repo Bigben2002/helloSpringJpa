@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>카테고리 목록 - Product Management</title>
+    <style>
+        body { font-family: 'Malgun Gothic', Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; color: #333; }
+        h1 { border-bottom: 2px solid #4a90d9; padding-bottom: 10px; color: #2c3e50; }
+        .btn { display: inline-block; padding: 8px 16px; background: #4a90d9; color: white; text-decoration: none; border-radius: 4px; margin-right: 8px; margin-bottom: 16px; }
+        .btn:hover { background: #357abd; }
+        .btn-gray { background: #6c757d; }
+        .btn-gray:hover { background: #545b62; }
+
+        .alert-success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 12px 16px; border-radius: 4px; margin-bottom: 12px; }
+        .alert-error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 12px 16px; border-radius: 4px; margin-bottom: 12px; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        th { background: #4a90d9; color: white; padding: 12px; text-align: left; }
+        td { padding: 10px 12px; border-bottom: 1px solid #ddd; }
+        tr:hover { background: #f5f8ff; }
+
+        .btn-delete { background: none; border: none; color: #e74c3c; cursor: pointer; text-decoration: underline; padding: 0; font-size: 0.95em; }
+        .btn-delete:hover { color: #c0392b; }
+
+        .empty-msg { text-align: center; padding: 30px; color: #888; }
+    </style>
+</head>
+<body>
+
+<h1>카테고리 목록</h1>
+
+<div class="alert-success" th:if="${successMessage}" th:text="${successMessage}">성공 메시지</div>
+<div class="alert-error" th:if="${errorMessage}" th:text="${errorMessage}">오류 메시지</div>
+
+<a class="btn" th:href="@{/categories/create}">+ 새 카테고리 등록</a>
+<a class="btn btn-gray" th:href="@{/products}">← 상품 목록으로</a>
+
+<div class="empty-msg" th:if="${#lists.isEmpty(categories)}">
+    등록된 카테고리가 없습니다.
+</div>
+
+<table th:unless="${#lists.isEmpty(categories)}">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>카테고리명</th>
+        <th>작업</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- th:each로 목록 반복, 삭제는 POST 폼으로 처리 -->
+    <tr th:each="cat : ${categories}">
+        <td th:text="${cat.id}">1</td>
+        <td th:text="${cat.name}">전자제품</td>
+        <td>
+            <!-- th:action에서 경로 변수 (id=${cat.id}) 바인딩 방법 -->
+            <form th:action="@{/categories/{id}/delete(id=${cat.id})}"
+                  method="post"
+                  style="display:inline;"
+                  onsubmit="return confirm('카테고리를 삭제하시겠습니까?');">
+                <button type="submit" class="btn-delete">삭제</button>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+<footer>
+    <hr>
+    <p th:text="'실습 수행 일시: ' + ${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd HH:mm:ss')} + ' | 학번: 2171073 | 성명: 이경석'"></p>
+</footer>
+
+</body>
+</html>
+
+<!--성공/오류 Flash 메시지 표시 -->
