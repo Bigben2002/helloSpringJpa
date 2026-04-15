@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import kr.ac.hansung.cse.exception.ProductNotFoundException;
 import kr.ac.hansung.cse.model.Product;
 import kr.ac.hansung.cse.model.ProductForm;
+import kr.ac.hansung.cse.service.CategoryService;
 import kr.ac.hansung.cse.service.ProductService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -37,20 +38,52 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
+    private final CategoryService categoryService;
 
-    public ProductController(ProductService productService) {
+    public ProductController(ProductService productService,
+                             CategoryService categoryService) {
         this.productService = productService;
+        this.categoryService = categoryService;
     }
 
 
     // ─────────────────────────────────────────────────────────────────
     // GET /products - 상품 목록 조회
     // ─────────────────────────────────────────────────────────────────
-
+    // 기존 listProducts() 메서드에 @RequestParam 두 개를 추가
+    /**
+     * GET /products - 상품 목록 조회 + 검색 파라미터 처리
+     *
+     * @RequestParam(required = false):
+     *   - 파라미터가 없어도 요청을 허용합니다.
+     *   - keyword/categoryId가 없으면 전체 목록 조회로 동작합니다.
+     *
+     * 검색 분기:
+     *   1) keyword가 있으면 이름 검색
+     *   2) keyword가 없고 categoryId가 있으면 카테고리 검색
+     *   3) 둘 다 없으면 전체 조회
+     */
     @GetMapping
-    public String listProducts(Model model) {
-        List<Product> products = productService.getAllProducts();
+    public String listProducts(@RequestParam(required = false) String keyword,
+                               @RequestParam(required = false) Long categoryId,
+                               Model model) {
+
+        List<Product> products;
+
+        if (keyword != null && !keyword.isBlank()) {
+            products = productService.searchByName(keyword.trim());
+        } else if (categoryId != null) {
+            products = productService.searchByCategory(categoryId);
+        } else {
+            products = productService.getAllProducts();
+        }
+
+        // 카테고리 드롭다운 목록 + 현재 검색 조건 유지
         model.addAttribute("products", products);
+        model.addAttribute("categories", categoryService.getAllCategories()); // 드롭다운 목록
+        model.addAttribute("keyword", keyword);       // 검색어 유지
+        model.addAttribute("categoryId", categoryId); // 선택값 유지
+
         return "productList";
     }
 

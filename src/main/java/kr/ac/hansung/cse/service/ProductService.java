@@ -94,6 +94,7 @@ public class ProductService {
      * readOnly 트랜잭션(클래스 기본값)을 그대로 사용합니다.
      * 실제 검색 쿼리는 Repository 계층에 위임합니다.
      */
+    // readOnly = true 상속: 검색은 읽기 전용 트랜잭션으로 충분
     public List<Product> searchByName(String keyword) {
         return productRepository.findByNameContaining(keyword);
     }

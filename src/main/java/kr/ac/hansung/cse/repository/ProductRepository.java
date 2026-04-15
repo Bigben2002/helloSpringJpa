@@ -106,12 +106,14 @@ public class ProductRepository {
      * ORDER BY p.id ASC:
      *   - 화면 출력 순서를 일관되게 유지합니다.
      */
+    // 이름 검색: JPQL의 LIKE로 키워드 포함 여부 검사
     public List<Product> findByNameContaining(String keyword) {
         return entityManager.createQuery(
                         "SELECT p FROM Product p " +
                                 "LEFT JOIN FETCH p.category " +
                                 "WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
                                 "ORDER BY p.id ASC", Product.class)
+                // "%" + keyword + "%"  →  부분 일치 검색 (앞뒤에 % 붙이는 것이 핵심!)
                 .setParameter("keyword", keyword)
                 .getResultList();
     }
@@ -128,6 +130,7 @@ public class ProductRepository {
      * 사용 목적:
      *   - 상품 목록에서 특정 카테고리만 보고 싶을 때 필터 기능으로 활용합니다.
      */
+    // 카테고리 필터: Product의 category.id 로 조회 (p.category.id = JPQL 경로 표현식)
     public List<Product> findByCategoryId(Long categoryId) {
         return entityManager.createQuery(
                         "SELECT p FROM Product p " +
